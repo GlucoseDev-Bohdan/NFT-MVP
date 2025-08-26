@@ -1,12 +1,16 @@
 import axios from 'axios';
 import { MintRequest, UpdateRequest, BurnRequest, MintResponse, UpdateResponse, BurnResponse, HistoryOperation, ServerStatus } from './types';
 
-// const API_BASE = 'http://localhost:3001/api';
-const API_BASE = import.meta.env.VITE_API_URL;
+// Use Vite env var in production, fallback to localhost for dev
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "http://localhost:10000/api";
+
+console.log("🔗 Using API base:", API_BASE);
 
 const api = axios.create({
   baseURL: API_BASE,
   timeout: 30000,
+  withCredentials: false, // enable if server requires cookies
 });
 
 export const apiClient = {
