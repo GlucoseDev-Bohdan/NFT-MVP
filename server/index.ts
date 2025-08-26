@@ -12,7 +12,7 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",      // your local frontend
-    "https://nft-mvp.onrender.com" // optional if frontend also on Render
+    "https://nft-mvp-project.netlify.app/"
   ]
 }));
 app.use(express.json());
