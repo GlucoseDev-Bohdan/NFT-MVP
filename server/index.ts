@@ -1,6 +1,6 @@
 import express from 'express';
-import path from "path";
-import { fileURLToPath } from "url";
+// import path from "path";
+// import { fileURLToPath } from "url";
 import cors from 'cors';
 import { ENV, validateEnv } from './config.js';
 import { initializeSolana } from './services/solana.js';
@@ -9,7 +9,12 @@ import routes from './routes.js';
 const app = express();
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: [
+    "http://localhost:5173",      // your local frontend
+    "https://nft-mvp.onrender.com" // optional if frontend also on Render
+  ]
+}));
 app.use(express.json());
 
 // Routes

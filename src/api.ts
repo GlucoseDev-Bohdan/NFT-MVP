@@ -2,7 +2,7 @@ import axios from 'axios';
 import { MintRequest, UpdateRequest, BurnRequest, MintResponse, UpdateResponse, BurnResponse, HistoryOperation, ServerStatus } from './types';
 
 // const API_BASE = 'http://localhost:3001/api';
-const API_BASE = process.env.VITE_API_URL;
+const API_BASE = import.meta.env.VITE_API_URL;
 
 const api = axios.create({
   baseURL: API_BASE,
