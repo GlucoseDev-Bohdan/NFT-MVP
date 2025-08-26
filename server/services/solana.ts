@@ -56,7 +56,7 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   const ownerPublicKey = tokenOwner ? new PublicKey(tokenOwner) : walletKeypair.publicKey;
 
   const { uri } = await metaplex.nfts().uploadMetadata(metadata);
-
+  console.log('📄 Metadata URI:', uri);
   const { nft, response } = await metaplex.nfts().create({
     uri,
     name: metadata.name!,
