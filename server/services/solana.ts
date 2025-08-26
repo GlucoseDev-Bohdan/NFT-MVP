@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import { Metaplex, keypairIdentity, irysStorage, type UploadMetadataInput } from '@metaplex-foundation/js';
+import { Metaplex, keypairIdentity, bundlrStorage, type UploadMetadataInput } from '@metaplex-foundation/js';
 import {
   getAssociatedTokenAddress,
   createBurnInstruction,
@@ -29,8 +29,8 @@ export function initializeSolana() {
   metaplex = Metaplex.make(connection)
     .use(keypairIdentity(walletKeypair))
     .use(
-      irysStorage({
-        address: ENV.BUNDLR_URL || 'https://devnet.irys.xyz',
+      bundlrStorage({
+        address: ENV.BUNDLR_URL || 'https://devnet.bundlr.network',
         providerUrl: ENV.RPC_URL,
         timeout: 60_000
       })
@@ -39,6 +39,7 @@ export function initializeSolana() {
 
   console.log('🔑 Wallet Public Key:', walletKeypair.publicKey.toString());
 }
+
 
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
   if (ENV.MOCK_MODE) {
@@ -56,7 +57,12 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   const ownerPublicKey = tokenOwner ? new PublicKey(tokenOwner) : walletKeypair.publicKey;
 
   const { uri } = await metaplex.nfts().uploadMetadata(metadata);
+
   console.log('📄 Metadata URI:', uri);
+
+  const ipfsGatewayUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
+  console.log("🔗 IPFS Gateway URL:", ipfsGatewayUrl);
+
   const { nft, response } = await metaplex.nfts().create({
     uri,
     name: metadata.name!,
