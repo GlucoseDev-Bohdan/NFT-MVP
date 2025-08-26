@@ -27,17 +27,17 @@ app.use((err: any, req: any, res: any, next: any) => {
 });
 
 // Serve frontend build (React)
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const clientBuildPath = path.join(__dirname, "../../dist");
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// const clientBuildPath = path.join(__dirname, "../../dist");
 
-// Serve static files
-app.use(express.static(clientBuildPath));
+// // Serve static files
+// app.use(express.static(clientBuildPath));
 
-// Fallback for React Router
-app.get("*", (_req, res) => {
-  res.sendFile(path.join(clientBuildPath, "index.html"));
-});
+// // Fallback for React Router
+// app.get("*", (_req, res) => {
+//   res.sendFile(path.join(clientBuildPath, "index.html"));
+// });
 
 // Start server
 async function startServer() {
