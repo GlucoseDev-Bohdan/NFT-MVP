@@ -1,4 +1,6 @@
 import express from 'express';
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from 'cors';
 import { ENV, validateEnv } from './config.js';
 import { initializeSolana } from './services/solana.js';
@@ -22,6 +24,19 @@ app.get('/health', (req, res) => {
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
+});
+
+// Serve frontend build (React)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const clientBuildPath = path.join(__dirname, "../../dist");
+
+// Serve static files
+app.use(express.static(clientBuildPath));
+
+// Fallback for React Router
+app.get("*", (_req, res) => {
+  res.sendFile(path.join(clientBuildPath, "index.html"));
 });
 
 // Start server
