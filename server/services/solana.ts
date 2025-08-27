@@ -191,8 +191,12 @@ export function initializeSolana() {
   // Metaplex
   metaplex = Metaplex.make(connection).use(keypairIdentity(walletKeypair));
 
+  if (!ENV.NFT_STORAGE_TOKEN) {
+    throw new Error('NFT_STORAGE_TOKEN is not set!');
+  }
+  console.log('✅ NFT_STORAGE_TOKEN loaded');
   // NFT.Storage client
-  nftStorageClient = new NFTStorage({ token: ENV.NFT_STORAGE_TOKEN! });
+  nftStorageClient = new NFTStorage({ token: ENV.NFT_STORAGE_TOKEN });
 
   console.log('🔑 Wallet Public Key:', walletKeypair.publicKey.toString());
 }
