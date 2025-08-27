@@ -1,5 +1,6 @@
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import { Metaplex, keypairIdentity, ipfsStorage, type UploadMetadataInput } from '@metaplex-foundation/js';
+import { Metaplex, keypairIdentity, type UploadMetadataInput } from '@metaplex-foundation/js';
+import { nftStorage } from '@metaplex-foundation/js-plugin-nft-storage';
 import {
   getAssociatedTokenAddress,
   createBurnInstruction,
@@ -29,14 +30,15 @@ export function initializeSolana() {
   metaplex = Metaplex.make(connection)
     .use(keypairIdentity(walletKeypair))
     .use(
-      ipfsStorage({
-        gateway: ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs'
+      nftStorage({
+        token: ENV.NFT_STORAGE_TOKEN,
+        gatewayHost: ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/',
+        useGatewayUrls: true
       })
     );
     
   console.log('🔑 Wallet Public Key:', walletKeypair.publicKey.toString());
 }
-
 
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
   if (ENV.MOCK_MODE) {
@@ -54,10 +56,7 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   const ownerPublicKey = tokenOwner ? new PublicKey(tokenOwner) : walletKeypair.publicKey;
 
   const { uri } = await metaplex.nfts().uploadMetadata(metadata);
-
-  console.log('📄 Metadata URI (ipfs://):', uri);
-  const pinataGatewayUrl = uri.replace('ipfs://', (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/') );
-  console.log('🔗 Pinata Gateway URL:', pinataGatewayUrl);
+  console.log('Metadata URI:', uri);
 
   const { nft, response } = await metaplex.nfts().create({
     uri,
@@ -101,7 +100,7 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
   const { uri } = await metaplex.nfts().uploadMetadata(updated);
   const pinataGatewayUrl = uri.replace('ipfs://', (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/'));
   console.log('🔗 Updated Metadata (Pinata Gateway):', pinataGatewayUrl);
-  
+
   const { response: updResp } = await metaplex.nfts().update({
     nftOrSft: nft,
     uri,

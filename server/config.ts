@@ -4,6 +4,7 @@ config();
 
 export const ENV = {
   PINATA_GATEWAY: process.env.PINATA_GATEWAY,
+  NFT_STORAGE_TOKEN: process.env.NFT_STORAGE_TOKEN, 
   RPC_URL: process.env.RPC_URL || 'https://api.devnet.solana.com',
   NETWORK: process.env.NETWORK || 'devnet',
   WALLET_SECRET_KEY: process.env.WALLET_SECRET_KEY || '',
