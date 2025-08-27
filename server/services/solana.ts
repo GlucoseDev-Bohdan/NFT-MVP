@@ -1,5 +1,5 @@
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
-import { Metaplex, keypairIdentity, bundlrStorage, type UploadMetadataInput } from '@metaplex-foundation/js';
+import { Metaplex, keypairIdentity, ipfsStorage, type UploadMetadataInput } from '@metaplex-foundation/js';
 import {
   getAssociatedTokenAddress,
   createBurnInstruction,
@@ -29,14 +29,11 @@ export function initializeSolana() {
   metaplex = Metaplex.make(connection)
     .use(keypairIdentity(walletKeypair))
     .use(
-      bundlrStorage({
-        address: ENV.BUNDLR_URL || 'https://devnet.bundlr.network',
-        providerUrl: ENV.RPC_URL,
-        timeout: 60_000
+      ipfsStorage({
+        gateway: ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs'
       })
     );
     
-
   console.log('🔑 Wallet Public Key:', walletKeypair.publicKey.toString());
 }
 
@@ -48,7 +45,7 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
     return {
       txSignature: mockSignature,
       mintAddress: mockMintAddress,
-      metadataUri: 'https://arweave.net/mock-metadata-uri',
+      metadataUri: 'ipfs://mock-metadata-uri',
       explorerUrl: getExplorerUrl(mockSignature)
     };
   }
@@ -58,10 +55,9 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
 
   const { uri } = await metaplex.nfts().uploadMetadata(metadata);
 
-  console.log('📄 Metadata URI:', uri);
-
-  const ipfsGatewayUrl = uri.replace("ipfs://", "https://ipfs.io/ipfs/");
-  console.log("🔗 IPFS Gateway URL:", ipfsGatewayUrl);
+  console.log('📄 Metadata URI (ipfs://):', uri);
+  const pinataGatewayUrl = uri.replace('ipfs://', (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/') );
+  console.log('🔗 Pinata Gateway URL:', pinataGatewayUrl);
 
   const { nft, response } = await metaplex.nfts().create({
     uri,
@@ -86,7 +82,7 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
     const mockSignature = 'MOCK_UPDATE_SIG_' + Math.random().toString(36).slice(2);
     return {
       txSignature: mockSignature,
-      newMetadataUri: 'https://arweave.net/mock-updated-metadata-uri',
+      newMetadataUri: 'ipfs://mock-updated-metadata-uri',
       explorerUrl: getExplorerUrl(mockSignature)
     };
   }
@@ -101,9 +97,11 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
   // Merge patch
   const updated: UploadMetadataInput = mergeMetadata(currentMetadata, patch);
 
-  // Upload and point to new URI
+  // Upload new metadata to Pinata/IPFS
   const { uri } = await metaplex.nfts().uploadMetadata(updated);
-
+  const pinataGatewayUrl = uri.replace('ipfs://', (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/'));
+  console.log('🔗 Updated Metadata (Pinata Gateway):', pinataGatewayUrl);
+  
   const { response: updResp } = await metaplex.nfts().update({
     nftOrSft: nft,
     uri,
