@@ -16,7 +16,6 @@
   },
   "dependencies": {
     "@metaplex-foundation/js": "^0.20.0",
-    "@metaplex-foundation/js-plugin-nft-storage": "^0.20.0",
     "@pinata/sdk": "^2.1.0",
     "@solana/spl-token": "^0.4.13",
     "@solana/web3.js": "^1.98.4",
