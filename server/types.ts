@@ -56,12 +56,14 @@ export interface MintResponse {
   txSignature: string;
   mintAddress: string;
   metadataUri: string;
+  metadataHttpUri: string;
   explorerUrl: string;
 }
 
 export interface UpdateResponse {
   txSignature: string;
   newMetadataUri: string;
+  metadataHttpUri: string;
   explorerUrl: string;
 }
 
