@@ -160,7 +160,7 @@
 
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import { Metaplex, keypairIdentity, type UploadMetadataInput } from '@metaplex-foundation/js';
-import { NFTStorage } from 'nft.storage';
+import { File, NFTStorage } from 'nft.storage';
 import {
   getAssociatedTokenAddress,
   createBurnInstruction,
@@ -202,9 +202,14 @@ export function initializeSolana() {
 }
 
 // Upload metadata JSON to NFT.Storage
+
 async function uploadMetadata(metadata: UploadMetadataInput) {
-  const blob = new Blob([JSON.stringify(metadata)], { type: 'application/json' });
-  const cid = await nftStorageClient.storeBlob(blob);
+  const file = new File(
+    [JSON.stringify(metadata)],
+    'metadata.json',
+    { type: 'application/json' }
+  );
+  const cid = await nftStorageClient.storeBlob(file);
   return `ipfs://${cid}`;
 }
 
