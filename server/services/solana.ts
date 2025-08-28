@@ -109,9 +109,22 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintPk });
   
   // Use Pinata gateway to fetch current metadata
-  const pinataUrl = nft.uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
+  const gateway = ENV.PINATA_GATEWAY?.endsWith('/') 
+  ? ENV.PINATA_GATEWAY 
+  : ENV.PINATA_GATEWAY + '/';
+  const pinataUrl = nft.uri.replace('ipfs://', gateway);
+  // const pinataUrl = nft.uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
   const resp = await fetch(pinataUrl);
-  const currentMetadata = (await resp.json()) as UploadMetadataInput;
+  const text = await resp.text();
+
+  let currentMetadata: UploadMetadataInput;
+  try {
+    currentMetadata = JSON.parse(text);
+  } catch (err) {
+    console.error('Failed to parse NFT metadata:', text);
+    throw new Error('Failed to fetch or parse NFT metadata from IPFS');
+  }
+  // const currentMetadata = (await resp.json()) as UploadMetadataInput;
   
   // Merge patch
   const updated: UploadMetadataInput = mergeMetadata(currentMetadata, patch);
