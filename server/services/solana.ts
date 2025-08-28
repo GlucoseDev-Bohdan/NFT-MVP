@@ -206,7 +206,6 @@ export function initializeSolana() {
   console.log('🔑 Wallet Public Key:', walletKeypair.publicKey.toString());
 }
 
-
 async function uploadMetadata(metadata: UploadMetadataInput) {
   const file = new File([JSON.stringify(metadata)], 'metadata.json', {
     type: 'application/json'
@@ -225,6 +224,7 @@ async function uploadMetadata(metadata: UploadMetadataInput) {
 
   return `ipfs://${root.toString()}`
 }
+
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
   if (ENV.MOCK_MODE) {
     const mockMintAddress = 'MOCK_' + Math.random().toString(36).slice(2);
