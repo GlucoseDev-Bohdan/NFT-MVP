@@ -157,6 +157,12 @@
 //     explorerUrl: getExplorerUrl(sig)
 //   };
 // }
+import fetch, { Headers, Request, Response } from 'node-fetch'
+
+if (!globalThis.fetch) globalThis.fetch = fetch as any
+if (!globalThis.Headers) globalThis.Headers = Headers as any
+if (!globalThis.Request) globalThis.Request = Request as any
+if (!globalThis.Response) globalThis.Response = Response as any
 
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import { Metaplex, keypairIdentity, type UploadMetadataInput } from '@metaplex-foundation/js';
