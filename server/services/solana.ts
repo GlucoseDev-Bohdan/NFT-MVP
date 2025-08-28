@@ -189,7 +189,7 @@ export function initializeSolana() {
   }
 
   connection = new Connection(ENV.RPC_URL, 'confirmed');
-
+  console.log(connection)
   // Parse wallet secret key
   const secretKeyArray = JSON.parse(ENV.WALLET_SECRET_KEY);
   walletKeypair = Keypair.fromSecretKey(new Uint8Array(secretKeyArray));
