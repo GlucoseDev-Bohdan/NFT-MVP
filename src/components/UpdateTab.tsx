@@ -201,7 +201,7 @@ export function UpdateTab({ onToast }: UpdateTabProps) {
               <span className="text-gray-600">New Metadata URI:</span>
               <div className="flex items-center space-x-2">
                 <a
-                  href={result.newMetadataUri}
+                  href={result.metadataHttpUri}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-orange-600 hover:text-orange-700 flex items-center space-x-1"

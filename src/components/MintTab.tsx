@@ -333,7 +333,7 @@ export function MintTab({ onToast }: MintTabProps) {
             <div className="flex items-center justify-between">
               <span className="text-gray-600">Metadata URI:</span>
               <a
-                href={result.metadataUri}
+                href={result.metadataHttpUri}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-700 flex items-center space-x-1"
