@@ -107,24 +107,25 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
 
   const mintPk = new PublicKey(mintAddress);
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintPk });
-
-  // Download current metadata JSON
-  const resp = await fetch(nft.uri);
+  
+  // Use Pinata gateway to fetch current metadata
+  const pinataUrl = nft.uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
+  const resp = await fetch(pinataUrl);
   const currentMetadata = (await resp.json()) as UploadMetadataInput;
-
+  
   // Merge patch
   const updated: UploadMetadataInput = mergeMetadata(currentMetadata, patch);
-
-  // Upload updated metadata to Pinata
+  
+  // Upload updated metadata
   const uri = await uploadToPinata(updated);
   console.log('🔗 Updated Metadata URI:', uri);
-
+  
   const { response: updResp } = await metaplex.nfts().update({
     nftOrSft: nft,
     uri,
     name: updated.name,
     symbol: updated.symbol as string | undefined
-  });
+  });  
 
   return {
     txSignature: updResp.signature,
