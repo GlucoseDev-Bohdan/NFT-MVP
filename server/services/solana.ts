@@ -160,8 +160,6 @@
 
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import { Metaplex, keypairIdentity, type UploadMetadataInput } from '@metaplex-foundation/js';
-import { pack } from 'ipfs-car/pack'
-import { MemoryBlockStore } from 'ipfs-car/blockstore/memory'
 import { File, NFTStorage } from 'nft.storage';
 import {
   getAssociatedTokenAddress,
@@ -208,18 +206,8 @@ async function uploadMetadata(metadata: UploadMetadataInput) {
     type: 'application/json'
   })
 
-  const blockstore = new MemoryBlockStore()
-
-  const { root, out } = await pack({
-    input: [file],
-    blockstore,
-    wrapWithDirectory: false
-  })
-
-  const cid = await nftStorageClient.storeCar(out)
-  await blockstore.close()
-
-  return `ipfs://${root.toString()}`
+  const cid = await nftStorageClient.storeBlob(file)
+  return `ipfs://${cid}`
 }
 
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
