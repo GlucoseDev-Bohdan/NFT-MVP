@@ -160,12 +160,8 @@
 
 import { Connection, Keypair, PublicKey, Transaction } from '@solana/web3.js';
 import { Metaplex, keypairIdentity, type UploadMetadataInput } from '@metaplex-foundation/js';
-// @ts-expect-error ipfs-car types not published
 import { pack } from 'ipfs-car/pack'
-// @ts-expect-error ipfs-car types not published
 import { MemoryBlockStore } from 'ipfs-car/blockstore/memory'
-
-
 import { File, NFTStorage } from 'nft.storage';
 import {
   getAssociatedTokenAddress,
