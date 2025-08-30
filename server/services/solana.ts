@@ -75,7 +75,7 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   // Upload metadata directly to Pinata
   const uri = await uploadToPinata(metadata);
   console.log('Metadata URI:', uri);
-
+  console.log('tokenOwner:', ownerPublicKey);
   // Step 1: Mint NFT into backend wallet
   const { nft, response } = await metaplex.nfts().create({
     uri,
