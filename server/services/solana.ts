@@ -76,6 +76,7 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   const uri = await uploadToPinata(metadata);
   console.log('Metadata URI:', uri);
 
+  // Step 1: Mint NFT into backend wallet
   const { nft, response } = await metaplex.nfts().create({
     uri,
     name: metadata.name!,
@@ -86,14 +87,33 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
     updateAuthority: walletKeypair
   });
 
+  let finalOwner = walletKeypair.publicKey;
+  let transferSig: string | undefined;
+
+  // Step 2: If an external owner is provided → transfer to them
+  const targetOwner = tokenOwner || (data.owners && data.owners[0]);
+  if (targetOwner) {
+    try {
+      const { response: transferResp } = await metaplex.nfts().transfer({
+        nftOrSft: nft,
+        toOwner: new PublicKey(targetOwner),
+      });
+      transferSig = transferResp.signature;
+      finalOwner = new PublicKey(targetOwner);
+      console.log(`🚀 NFT transferred to ${targetOwner} (sig: ${transferSig})`);
+    } catch (err) {
+      console.error('⚠️ Failed to transfer NFT to owner:', err);
+    }
+  }
+
   const httpUri = uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
 
   return {
-    txSignature: response.signature,
+    txSignature: transferSig || response.signature,
     mintAddress: nft.mint.address.toBase58(),
     metadataUri: uri,
     metadataHttpUri: httpUri,
-    explorerUrl: getExplorerUrl(response.signature)
+    explorerUrl: getExplorerUrl(transferSig || response.signature)
   };
 }
 
@@ -101,11 +121,11 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
 export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): Promise<UpdateResponse> {
   if (ENV.MOCK_MODE) {
     // const mockSignature = 'MOCK_UPDATE_SIG_' + Math.random().toString(36).slice(2);
-  //   return {
-  //     txSignature: mockSignature,
-  //     newMetadataUri: 'ipfs://mock-updated-metadata-uri',
-  //     explorerUrl: getExplorerUrl(mockSignature)
-  //   };
+    // return {
+    //   txSignature: mockSignature,
+    //   newMetadataUri: 'ipfs://mock-updated-metadata-uri',
+    //   explorerUrl: getExplorerUrl(mockSignature)
+    // };
   }
 
   const mintPk = new PublicKey(mintAddress);
@@ -191,5 +211,29 @@ export async function burnNFT(mintAddress: string): Promise<BurnResponse> {
     burnSignature: sig,
     closeSignature: sig,
     explorerUrl: getExplorerUrl(sig)
+  };
+}
+
+/** Transfer an NFT from backend wallet to another wallet */
+export async function transferNFT(mintAddress: string, toOwner: string) {
+  if (ENV.MOCK_MODE) {
+    const mockTransferSig = 'MOCK_TRANSFER_SIG_' + Math.random().toString(36).slice(2);
+    return {
+      txSignature: mockTransferSig,
+      explorerUrl: getExplorerUrl(mockTransferSig)
+    };
+  }
+
+  const mintPk = new PublicKey(mintAddress);
+  const nft = await metaplex.nfts().findByMint({ mintAddress: mintPk });
+
+  const { response } = await metaplex.nfts().transfer({
+    nftOrSft: nft,
+    toOwner: new PublicKey(toOwner),
+  });
+
+  return {
+    txSignature: response.signature,
+    explorerUrl: getExplorerUrl(response.signature),
   };
 }

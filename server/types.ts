@@ -52,6 +52,11 @@ export interface BurnRequest {
   mintAddress: string;
 }
 
+export interface TransferRequest {
+  mintAddress: string;
+  toOwner: string;
+}
+
 export interface MintResponse {
   txSignature: string;
   mintAddress: string;
@@ -73,14 +78,18 @@ export interface BurnResponse {
   explorerUrl: string;
 }
 
+export interface TransferResponse {
+  txSignature: string;
+  explorerUrl: string;
+}
+
 export interface HistoryOperation {
-  type: 'mint' | 'update' | 'burn';
+  type: 'mint' | 'update' | 'burn' | 'transfer';
   mintAddress: string;
   signature: string;
   when: string;
   explorerUrl: string;
 }
-
 export interface PinataResponse {
   IpfsHash: string;
   PinSize?: number;

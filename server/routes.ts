@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
-import { MintRequest, UpdateRequest, BurnRequest, HistoryOperation } from './types.js';
-import { mintNFT, updateNFT, burnNFT } from './services/solana.js';
+import { MintRequest, UpdateRequest, BurnRequest, TransferRequest, HistoryOperation } from './types.js';
+import { mintNFT, updateNFT, burnNFT, transferNFT } from './services/solana.js';
 
 const router = Router();
 const recentOps: HistoryOperation[] = [];
@@ -25,7 +25,7 @@ router.post('/mint', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Trade details are required' });
     }
 
-    const result = await mintNFT(mintData, mintData.tokenOwner);
+    const result = await mintNFT(mintData, mintData.tokenOwner || mintData.owners?.[0]);
     
     addToHistory({
       type: 'mint',
@@ -89,6 +89,31 @@ router.post('/burn', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Burn error:', error);
     res.status(500).json({ error: 'Failed to burn NFT: ' + (error as Error).message });
+  }
+});
+
+router.post('/transfer', async (req: Request, res: Response) => {
+  try {
+    const transferData: TransferRequest = req.body;
+
+    if (!transferData.mintAddress || !transferData.toOwner) {
+      return res.status(400).json({ error: 'Mint address and toOwner are required' });
+    }
+
+    const result = await transferNFT(transferData.mintAddress, transferData.toOwner);
+
+    addToHistory({
+      type: 'transfer',
+      mintAddress: transferData.mintAddress,
+      signature: result.txSignature,
+      when: new Date().toISOString(),
+      explorerUrl: result.explorerUrl
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error('Transfer error:', error);
+    res.status(500).json({ error: 'Failed to transfer NFT: ' + (error as Error).message });
   }
 });
 
