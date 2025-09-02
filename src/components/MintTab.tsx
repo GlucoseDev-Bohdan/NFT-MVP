@@ -188,7 +188,7 @@ export function MintTab({ onToast }: MintTabProps) {
                 value={formData.owners?.join(', ') || ''}
                 onChange={(e) => setFormData({...formData, owners: e.target.value.split(',').map(s => s.trim()).filter(Boolean)})}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                placeholder="9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM"
+                placeholder="3m5Wqgkfy7dgSYMcXcFWMprMQFgstmsY5vvGyrA5wkQN"
               />
             </div>
           </div>
