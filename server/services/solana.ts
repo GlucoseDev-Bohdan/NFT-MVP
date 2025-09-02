@@ -26,15 +26,6 @@ export async function uploadImageBase64ToIPFS(
     const base64 = match[2];
     const buffer = Buffer.from(base64, "base64");
 
-    // 1) Prefer NFT.Storage
-    if (ENV.NFT_STORAGE_TOKEN) {
-      const { NFTStorage, Blob } = await import("nft.storage");
-      const client = new NFTStorage({ token: ENV.NFT_STORAGE_TOKEN });
-      const cid = await client.storeBlob(new Blob([buffer], { type: contentType }));
-      return `ipfs://${cid}`;
-    }
-
-    // 2) Pinata using JWT
     if (ENV.PINATA_JWT) {
       const form = new FormData();
       form.append("file", new Blob([buffer], { type: contentType }), filename);
