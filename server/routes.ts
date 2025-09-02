@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { MintRequest, UpdateRequest, BurnRequest, TransferRequest, HistoryOperation } from './types.js';
 import { mintNFT, updateNFT, burnNFT, transferNFT, uploadImageBase64ToIPFS } from './services/solana.js';
-import { ENV } from './config';
+import { ENV } from './config.js';
 
 const router = Router();
 const recentOps: HistoryOperation[] = [];
