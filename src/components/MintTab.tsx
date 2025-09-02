@@ -63,7 +63,7 @@ export function MintTab({ onToast }: MintTabProps) {
       title: 'Bitcoin Long Position #1',
       description: 'This is the XYZ Long position for Bitcoin',
       imageUrl: 'https://images.pexels.com/photos/730547/pexels-photo-730547.jpeg',
-      owners: ['9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM'],
+      owners: ['3m5Wqgkfy7dgSYMcXcFWMprMQFgstmsY5vvGyrA5wkQN'],
       trade: {
         exchange: 'Coinbase',
         coin: 'BTC',
@@ -178,7 +178,7 @@ export function MintTab({ onToast }: MintTabProps) {
                 <p className="text-xs text-gray-500 mt-1">{selectedFile.name} selected</p>
               )}
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Owners (comma-separated base58 addresses)
