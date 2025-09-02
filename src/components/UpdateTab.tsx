@@ -17,6 +17,29 @@ export function UpdateTab({ onToast }: UpdateTabProps) {
   });
   
   const [loading, setLoading] = useState(false);
+  const [uploading, setUploading] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { ipfsUri } = await apiClient.uploadImage(dataUrl, file.name);
+      setPatchData(prev => ({ ...prev, imageUrl: ipfsUri }));
+      onToast('success', 'Image uploaded to IPFS');
+    } catch (err:any) {
+      console.error(err);
+      onToast('error', err?.message || 'Image upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
   const [result, setResult] = useState<UpdateResponse | null>(null);
 
   const loadExample = () => {
@@ -115,9 +138,16 @@ export function UpdateTab({ onToast }: UpdateTabProps) {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Image URL
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Upload New Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                disabled={uploading}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+              />
+
+              <label className="block text-sm font-medium text-gray-700 mt-3 mb-1">Or paste Image URL</label>
               <input
                 type="url"
                 value={patchData.imageUrl}
@@ -125,6 +155,16 @@ export function UpdateTab({ onToast }: UpdateTabProps) {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 placeholder="https://example.com/final-image.jpg"
               />
+              {patchData.imageUrl && (
+                <div className="mt-2">
+                  <div className="text-xs text-gray-500 mb-1">Preview</div>
+                  <img
+                    src={patchData.imageUrl.startsWith('ipfs://') ? patchData.imageUrl.replace('ipfs://','https://gateway.pinata.cloud/ipfs/') : patchData.imageUrl}
+                    alt="preview"
+                    className="h-32 rounded-lg object-cover"
+                  />
+                </div>
+              )}
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

@@ -15,6 +15,47 @@ let connection: Connection;
 let metaplex: Metaplex;
 let walletKeypair: Keypair;
 
+export async function uploadImageBase64ToIPFS(dataUrl: string, filename = "image.png"): Promise<string> {
+  try {
+    const match = dataUrl.match(/^data:(.*?);base64,(.*)$/);
+    if (!match) throw new Error('Invalid data URL');
+    const contentType = match[1] || 'application/octet-stream';
+    const base64 = match[2];
+    const buffer = Buffer.from(base64, 'base64');
+
+    // Prefer NFT.Storage if token provided
+    if (ENV.NFT_STORAGE_TOKEN) {
+      const { NFTStorage, Blob } = await import('nft.storage');
+      const client = new NFTStorage({ token: ENV.NFT_STORAGE_TOKEN });
+      const cid = await client.storeBlob(new Blob([buffer], { type: contentType }));
+      return `ipfs://${cid}`;
+    }
+
+    // Fallback to Pinata pinFileToIPFS using FormData
+    // Requires ENV.NFT_STORAGE_TOKEN as Bearer (compatible with Pinata JWT if provided)
+    const form = new FormData();
+    form.append('file', new Blob([buffer], { type: contentType }), filename);
+
+    const resp = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${ENV.NFT_STORAGE_TOKEN}` },
+      body: form as any
+    });
+
+    if (!resp.ok) {
+      const errText = await resp.text();
+      throw new Error(`File upload failed: ${errText}`);
+    }
+
+    const data = (await resp.json()) as PinataResponse;
+    return `ipfs://${data.IpfsHash}`;
+  } catch (e:any) {
+    console.error('Upload image failed:', e);
+    throw e;
+  }
+}
+
+
 /** Initialize Solana connection and Metaplex instance */
 export function initializeSolana() {
   if (ENV.MOCK_MODE) {

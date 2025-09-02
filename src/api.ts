@@ -14,6 +14,10 @@ const api = axios.create({
 });
 
 export const apiClient = {
+  uploadImage: async (dataUrl: string, filename: string): Promise<{ ipfsUri: string, httpUrl: string }> => {
+    const response = await api.post('/upload-image', { dataUrl, filename });
+    return response.data;
+  },
   mint: async (data: MintRequest): Promise<MintResponse> => {
     const response = await api.post('/mint', data);
     return response.data;

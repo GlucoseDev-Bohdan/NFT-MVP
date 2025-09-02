@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { MintRequest, UpdateRequest, BurnRequest, TransferRequest, HistoryOperation } from './types.js';
-import { mintNFT, updateNFT, burnNFT, transferNFT } from './services/solana.js';
+import { mintNFT, updateNFT, burnNFT, transferNFT, uploadImageBase64ToIPFS } from './services/solana.js';
+import { ENV } from './config';
 
 const router = Router();
 const recentOps: HistoryOperation[] = [];
@@ -114,6 +115,27 @@ router.post('/transfer', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Transfer error:', error);
     res.status(500).json({ error: 'Failed to transfer NFT: ' + (error as Error).message });
+  }
+});
+
+
+
+router.post('/upload-image', async (req: Request, res: Response) => {
+  try {
+    const { dataUrl, filename } = req.body || {};
+    if (!dataUrl) return res.status(400).json({ error: 'dataUrl is required' });
+
+    const ipfsUri = await uploadImageBase64ToIPFS(dataUrl, filename || 'image.png');
+
+    // Build optional HTTP gateway URL for convenience
+    const gateway = ENV.PINATA_GATEWAY?.endsWith('/')
+      ? ENV.PINATA_GATEWAY
+      : (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/') + '/';
+    const httpUrl = ipfsUri.replace('ipfs://', gateway);
+
+    res.json({ ipfsUri, httpUrl });
+  } catch (e:any) {
+    res.status(500).json({ error: e?.message || 'Upload failed' });
   }
 });
 
