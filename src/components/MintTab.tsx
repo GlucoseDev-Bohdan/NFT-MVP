@@ -162,6 +162,23 @@ export function MintTab({ onToast }: MintTabProps) {
               />
             </div>
 
+            {/* Upload Image */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Upload Image (optional)
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="w-full text-sm text-gray-700 border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+              {uploading && <p className="text-xs text-gray-500 mt-1">Uploading image...</p>}
+              {selectedFile && !uploading && (
+                <p className="text-xs text-gray-500 mt-1">{selectedFile.name} selected</p>
+              )}
+            </div>
+            
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Owners (comma-separated base58 addresses)
