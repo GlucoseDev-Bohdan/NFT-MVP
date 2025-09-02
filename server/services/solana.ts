@@ -57,6 +57,7 @@ async function uploadToPinata(json: object): Promise<string> {
 }
 
 /** Mint a new NFT */
+/** Mint a new NFT */
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
   if (ENV.MOCK_MODE) {
     // const mockMintAddress = 'MOCK_' + Math.random().toString(36).slice(2);
@@ -70,12 +71,11 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
   }
 
   const metadata: UploadMetadataInput = transformToMetaplexMetadata(data);
-  const ownerPublicKey = tokenOwner ? new PublicKey(tokenOwner) : walletKeypair.publicKey;
 
-  // Upload metadata directly to Pinata
+  // Upload metadata to Pinata
   const uri = await uploadToPinata(metadata);
-  console.log('Metadata URI:', uri);
-  console.log('tokenOwner:', ownerPublicKey);
+  console.log('📦 Metadata URI:', uri);
+
   // Step 1: Mint NFT into backend wallet
   const { nft, response } = await metaplex.nfts().create({
     uri,
@@ -83,37 +83,36 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
     symbol: (metadata.symbol as string | undefined) ?? ENV.NFT_SYMBOL,
     sellerFeeBasisPoints: ENV.SELLER_FEE_BPS,
     isMutable: true,
-    tokenOwner: ownerPublicKey,
     updateAuthority: walletKeypair
   });
 
-  // let finalOwner = walletKeypair.publicKey;
-  // let transferSig: string | undefined;
+  let finalOwner = walletKeypair.publicKey;
+  let finalSig = response.signature;
 
-  // Step 2: If an external owner is provided → transfer to them
-  // const targetOwner = tokenOwner || (data.owners && data.owners[0]);
-  // if (targetOwner) {
-  //   try {
-  //     const { response: transferResp } = await metaplex.nfts().transfer({
-  //       nftOrSft: nft,
-  //       toOwner: new PublicKey(targetOwner),
-  //     });
-  //     transferSig = transferResp.signature;
-  //     finalOwner = new PublicKey(targetOwner);
-  //     console.log(`🚀 NFT transferred to ${targetOwner} (sig: ${transferSig})`);
-  //   } catch (err) {
-  //     console.error('⚠️ Failed to transfer NFT to owner:', err);
-  //   }
-  // }
+  // Step 2: If Phantom wallet address is provided → transfer to it
+  const targetOwner = tokenOwner || (data.owners && data.owners[0]);
+  if (targetOwner) {
+    try {
+      const { response: transferResp } = await metaplex.nfts().transfer({
+        nftOrSft: nft,
+        toOwner: new PublicKey(targetOwner),
+      });
+      finalSig = transferResp.signature;
+      finalOwner = new PublicKey(targetOwner);
+      console.log(`🚀 NFT transferred to ${targetOwner} (sig: ${finalSig})`);
+    } catch (err) {
+      console.error('⚠️ Failed to transfer NFT to Phantom wallet:', err);
+    }
+  }
 
   const httpUri = uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
 
   return {
-    txSignature: response.signature,
+    txSignature: finalSig,
     mintAddress: nft.mint.address.toBase58(),
     metadataUri: uri,
     metadataHttpUri: httpUri,
-    explorerUrl: getExplorerUrl(response.signature)
+    explorerUrl: getExplorerUrl(finalSig)
   };
 }
 
