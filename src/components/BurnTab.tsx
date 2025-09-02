@@ -174,7 +174,7 @@ interface BurnTabProps {
 }
 
 // RPC
-const connection = new Connection("https://api.mainnet-beta.solana.com");
+const connection = new Connection("https://api.devnet.solana.com");
 
 interface BurnResult {
   explorerUrl: string;
@@ -205,7 +205,7 @@ export async function burnNFTWithPhantom(mintAddress: string): Promise<BurnResul
     const sig = await connection.sendRawTransaction(signedTx.serialize());
 
     return {
-      explorerUrl: `https://solscan.io/tx/${sig}?cluster=mainnet`,
+      explorerUrl: `https://solscan.io/tx/${sig}?cluster=devnet`,
       burnSignature: sig
     };
   } catch (err: any) {
