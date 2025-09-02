@@ -87,33 +87,33 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
     updateAuthority: walletKeypair
   });
 
-  let finalOwner = walletKeypair.publicKey;
-  let transferSig: string | undefined;
+  // let finalOwner = walletKeypair.publicKey;
+  // let transferSig: string | undefined;
 
   // Step 2: If an external owner is provided → transfer to them
-  const targetOwner = tokenOwner || (data.owners && data.owners[0]);
-  if (targetOwner) {
-    try {
-      const { response: transferResp } = await metaplex.nfts().transfer({
-        nftOrSft: nft,
-        toOwner: new PublicKey(targetOwner),
-      });
-      transferSig = transferResp.signature;
-      finalOwner = new PublicKey(targetOwner);
-      console.log(`🚀 NFT transferred to ${targetOwner} (sig: ${transferSig})`);
-    } catch (err) {
-      console.error('⚠️ Failed to transfer NFT to owner:', err);
-    }
-  }
+  // const targetOwner = tokenOwner || (data.owners && data.owners[0]);
+  // if (targetOwner) {
+  //   try {
+  //     const { response: transferResp } = await metaplex.nfts().transfer({
+  //       nftOrSft: nft,
+  //       toOwner: new PublicKey(targetOwner),
+  //     });
+  //     transferSig = transferResp.signature;
+  //     finalOwner = new PublicKey(targetOwner);
+  //     console.log(`🚀 NFT transferred to ${targetOwner} (sig: ${transferSig})`);
+  //   } catch (err) {
+  //     console.error('⚠️ Failed to transfer NFT to owner:', err);
+  //   }
+  // }
 
   const httpUri = uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
 
   return {
-    txSignature: transferSig || response.signature,
+    txSignature: response.signature,
     mintAddress: nft.mint.address.toBase58(),
     metadataUri: uri,
     metadataHttpUri: httpUri,
-    explorerUrl: getExplorerUrl(transferSig || response.signature)
+    explorerUrl: getExplorerUrl(response.signature)
   };
 }
 
