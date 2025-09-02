@@ -129,40 +129,33 @@ export async function updateNFT(mintAddress: string, patch: Partial<MintBody>): 
 
   const mintPk = new PublicKey(mintAddress);
   const nft = await metaplex.nfts().findByMint({ mintAddress: mintPk });
-  
-  // Use Pinata gateway to fetch current metadata
-  const gateway = ENV.PINATA_GATEWAY?.endsWith('/') 
-  ? ENV.PINATA_GATEWAY 
-  : ENV.PINATA_GATEWAY + '/';
-  const pinataUrl = nft.uri.replace('ipfs://', gateway);
-  // const pinataUrl = nft.uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
-  const resp = await fetch(pinataUrl);
-  const text = await resp.text();
 
-  let currentMetadata: UploadMetadataInput;
-  try {
-    currentMetadata = JSON.parse(text);
-  } catch (err) {
-    console.error('Failed to parse NFT metadata:', text);
-    throw new Error('Failed to fetch or parse NFT metadata from IPFS');
-  }
-  // const currentMetadata = (await resp.json()) as UploadMetadataInput;
-  
+  // Fetch old metadata
+  const gateway = ENV.PINATA_GATEWAY?.endsWith('/')
+    ? ENV.PINATA_GATEWAY
+    : (ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/') + '/';
+  const resp = await fetch(nft.uri.replace('ipfs://', gateway));
+  const currentMetadata = (await resp.json()) as UploadMetadataInput;
+
   // Merge patch
   const updated: UploadMetadataInput = mergeMetadata(currentMetadata, patch);
-  
+
   // Upload updated metadata
   const uri = await uploadToPinata(updated);
   console.log('🔗 Updated Metadata URI:', uri);
-  
+
+  // Update NFT on-chain (backend is updateAuthority)
   const { response: updResp } = await metaplex.nfts().update({
     nftOrSft: nft,
     uri,
     name: updated.name,
-    symbol: updated.symbol as string | undefined
-  });  
+    symbol: updated.symbol as string | undefined,
+    updateAuthority: walletKeypair
+  });
 
+  // HTTP gateway for easy preview
   const httpUri = uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
+
   return {
     txSignature: updResp.signature,
     newMetadataUri: uri,
