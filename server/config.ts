@@ -12,7 +12,10 @@ export const ENV = {
   SELLER_FEE_BPS: parseInt(process.env.SELLER_FEE_BPS || '0'),
   PORT: parseInt(process.env.PORT || '3001'),
   MOCK_MODE: process.env.MOCK_MODE === 'true',
-  BUNDLR_URL: process.env.BUNDLR_URL || 'https://devnet.bundlr.network'
+  BUNDLR_URL: process.env.BUNDLR_URL || 'https://devnet.bundlr.network',
+  PINATA_API_KEY: process.env.PINATA_API_KEY, 
+  PINATA_API_SECRET: process.env.PINATA_SECRET_API_KEY,
+  PINATA_JWT: process.env.NFT_STORAGE_TOKEN
 };
 
 export function validateEnv(): { valid: boolean; errors: string[] } {
