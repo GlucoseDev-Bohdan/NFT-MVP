@@ -5,8 +5,8 @@ config();
 export const ENV = {
   PINATA_GATEWAY: process.env.PINATA_GATEWAY,
   NFT_STORAGE_TOKEN: process.env.NFT_STORAGE_TOKEN, 
-  RPC_URL: process.env.RPC_URL || 'https://api.devnet.solana.com',
-  NETWORK: process.env.NETWORK || 'devnet',
+  RPC_URL: process.env.RPC_URL || 'https://api.mainnet-beta.solana.com',
+  NETWORK: process.env.NETWORK || 'mainnet-beta',
   WALLET_SECRET_KEY: process.env.WALLET_SECRET_KEY || '',
   NFT_SYMBOL: process.env.NFT_SYMBOL || 'OWN',
   SELLER_FEE_BPS: parseInt(process.env.SELLER_FEE_BPS || '0'),
