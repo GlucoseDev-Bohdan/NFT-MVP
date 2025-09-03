@@ -145,8 +145,8 @@ router.get('/history', (req: Request, res: Response) => {
 
 router.get('/status', (req: Request, res: Response) => {
   res.json({
-    network: process.env.NETWORK || 'devnet',
-    rpcUrl: new URL(process.env.RPC_URL || 'https://api.devnet.solana.com').host,
+    network: process.env.NETWORK || 'mainnet',
+    rpcUrl: new URL(process.env.RPC_URL || 'https://api.mainnet-beta.solana.com').host,
     mockMode: process.env.MOCK_MODE === 'true',
     timestamp: new Date().toISOString()
   });
