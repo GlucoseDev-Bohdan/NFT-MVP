@@ -413,25 +413,40 @@ async function uploadToPinata(json: object): Promise<string> {
 export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<MintResponse> {
   if (ENV.MOCK_MODE) {
     return {
-      txSignature: 'MOCK_SIG',
-      mintAddress: 'MOCK_MINT',
-      metadataUri: 'ipfs://mock',
-      metadataHttpUri: 'https://gateway.pinata.cloud/ipfs/mock',
-      explorerUrl: getExplorerUrl('MOCK_SIG')
+      txSignature: "MOCK_SIG_" + Math.random().toString(36).slice(2),
+      mintAddress: "MOCK_MINT_" + Math.random().toString(36).slice(2),
+      metadataUri: "ipfs://mock-metadata-uri",
+      metadataHttpUri: "https://gateway.pinata.cloud/ipfs/mock-metadata-uri",
+      explorerUrl: getExplorerUrl("mock"),
     };
   }
 
   const metadata: UploadMetadataInput = transformToMetaplexMetadata(data);
 
-  // Upload metadata to Pinata
+  // 1️⃣ Upload metadata JSON to Pinata
   const uri = await uploadToPinata(metadata);
-  console.log('📦 Metadata URI:', uri);
+  console.log("📦 Metadata URI:", uri);
 
-  const targetOwner = tokenOwner || (data.owners && data.owners[0]);
-  const finalOwnerPk = targetOwner ? new PublicKey(targetOwner) : walletKeypair.publicKey;
+  // 2️⃣ Check backend wallet balance before mint
+  const balanceLamports = await connection.getBalance(walletKeypair.publicKey);
+  const balanceSOL = balanceLamports / 1e9;
+  console.log("💰 Backend wallet balance:", balanceSOL.toFixed(4), "SOL");
+
+  if (balanceLamports < 0.05 * 1e9) {
+    throw new Error(
+      `❌ Backend wallet has only ${balanceSOL.toFixed(
+        4
+      )} SOL. At least 0.05 SOL required for rent + fees. Please fund it.`
+    );
+  }
+
+  // 3️⃣ Choose final NFT owner (Phantom or backend)
+  const finalOwnerPk = tokenOwner
+    ? new PublicKey(tokenOwner)
+    : walletKeypair.publicKey;
 
   try {
-    // 1️⃣ Mint directly to final owner
+    // 4️⃣ Mint NFT directly to the final owner
     const { nft, response } = await metaplex.nfts().create({
       uri,
       name: metadata.name!,
@@ -442,16 +457,14 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
       tokenOwner: finalOwnerPk,
     });
 
-    // 2️⃣ Ensure ATA exists
-    await getOrCreateAssociatedTokenAccount(
-      connection,
-      walletKeypair,
-      nft.mint.address,
-      finalOwnerPk
+    const httpUri = uri.replace(
+      "ipfs://",
+      ENV.PINATA_GATEWAY || "https://gateway.pinata.cloud/ipfs/"
     );
 
-    const httpUri = uri.replace('ipfs://', ENV.PINATA_GATEWAY || 'https://gateway.pinata.cloud/ipfs/');
-    console.log(`🚀 NFT minted to ${finalOwnerPk.toBase58()} (sig: ${response.signature})`);
+    console.log(
+      `🚀 NFT minted to ${finalOwnerPk.toBase58()} (sig: ${response.signature})`
+    );
 
     return {
       txSignature: response.signature,
@@ -461,9 +474,9 @@ export async function mintNFT(data: MintBody, tokenOwner?: string): Promise<Mint
       explorerUrl: getExplorerUrl(response.signature),
     };
   } catch (err: any) {
-    console.error('❌ Mint failed:', err.message);
-    if (err.logs) console.error('Simulation logs:', err.logs);
-    if (err.signature) console.error('Debug signature:', err.signature);
+    console.error("❌ Mint failed:", err.message);
+    if (err.logs) console.error("Simulation logs:", err.logs);
+    if (err.signature) console.error("Debug signature:", err.signature);
     throw err;
   }
 }
